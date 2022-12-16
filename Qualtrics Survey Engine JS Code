@@ -1,0 +1,101 @@
+Qualtrics Survey Engine JS Code
+This code was ellaborated by Jackson Walters from Virginia Tech and Boston University.
+I do not create and/or own any parts of this code, and this iteration resembles the instructions provided by the author in Walters, J. (2020). Js-mouse-tracking [JavaScript]. https://github.com/jacksonwalters/js-mouse-tracking (Original work published 2012). My only contribution to this work is putting all the snippets together in the sections specified by Qualtrics to have the code working, as well as the comments found between /* and */ characters.
+Jackson Walters provided this code in their forum and GitHub (https://github.com/jacksonwalters/js-mouse-tracking), and it can be used and modified as per GNU General Public License.
+
+Qualtrics.SurveyEngine.addOnload(function()
+{
+	/*Place your JavaScript here to run when the page loads*/
+
+	Qualtrics.SurveyEngine.addOnPageSubmit(function(type)
+{
+	if(type == "next")
+	{
+		Qualtrics.SurveyEngine.setEmbeddedData("xPos", delayedXPos.join());
+  		Qualtrics.SurveyEngine.setEmbeddedData("yPos", delayedYPos.join());
+  		Qualtrics.SurveyEngine.setEmbeddedData("time", delayedTime.join());
+	}
+});
+	
+});
+
+Qualtrics.SurveyEngine.addOnReady(function()
+{
+	/*Place your JavaScript here to run when the page is fully displayed*/
+
+});
+
+Qualtrics.SurveyEngine.addOnUnload(function()
+{
+	/*Place your JavaScript here to run when the page is unloaded*/
+
+});
+
+document.onmousemove = getMousePosition; //set document to record mouse position
+
+//initialize arrays
+var delayedXPos = new Array();
+var delayedYPos = new Array();
+var delayedTime = new Array();
+
+var xPos = new Array();
+var yPos = new Array();
+
+//initialize time variables
+var initTime = new Date().getTime();
+var timer_is_on=0;
+var t;
+
+//time interval for data collection in ms
+var dt=10;
+
+//flag signaling whether getMousePosition has been called
+mp_called = 0;
+
+//function that determines action when mouse moves
+function getMousePosition(mp)
+{
+ var divPos = getPosition(document.getElementById("Questions"));
+ xPos.push(mp.pageX - divPos[0]);
+ yPos.push(mp.pageY - divPos[1]);
+ mp_called = 1;
+ return true;
+}
+
+function timedCount()
+{
+ if(mp_called){
+   delayedXPos.push(xPos[xPos.length-1]);
+   delayedYPos.push(yPos[yPos.length-1]);
+   var timeInSec = (new Date().getTime()-initTime) / 1000.;
+   delayedTime.push(timeInSec);
+  }
+  t=setTimeout("timedCount()",dt);
+}
+
+function doTimer()
+{
+ if (!timer_is_on)
+ {
+  initTime = new Date().getTime();
+  timer_is_on=1;
+  timedCount();
+ }
+}
+
+function getPosition(obj){
+
+var topValue= 0,leftValue= 0;
+
+while(obj)
+{
+ leftValue+= obj.offsetLeft;
+ topValue+= obj.offsetTop;
+ obj= obj.offsetParent;
+}
+
+return [leftValue, topValue];
+}
+
+//start collecting data after page loads
+document.onload = doTimer();
